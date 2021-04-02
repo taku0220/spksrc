@@ -1,5 +1,5 @@
-PYTHON_DIR="/usr/local/python3"
-PIP=${SYNOPKG_PKGDEST}/env/bin/pip3
+PYTHON_DIR="/var/packages/python38/target"
+PIP="${SYNOPKG_PKGDEST}/env/bin/pip3"
 PATH="${SYNOPKG_PKGDEST}/bin:${SYNOPKG_PKGDEST}/env/bin:${PYTHON_DIR}/bin:${PATH}"
 HOME="${SYNOPKG_PKGDEST}/var"
 VIRTUALENV="${PYTHON_DIR}/bin/virtualenv"
@@ -33,19 +33,9 @@ set_config() {
 [General]
 web_username = ${wizard_username}
 web_password = ${wizard_password}
-branch = ${SC_GIT_BRANCH}
 web_port = 8081
 update_frequency = 24
 EOF
-    fi
-}
-
-service_preinst ()
-{
-    # Avoid ssl errors in git
-    SSL_CRT="/etc/ssl/certs/ca-certificates.crt"
-    if [ -f ${SSL_CRT} ]; then
-        ${GIT} config --system http.sslCAInfo ${SSL_CRT} > /dev/null 2>&1
     fi
 }
 
@@ -62,7 +52,5 @@ service_postinst() {
 }
 
 service_postupgrade() {
-    # Do we need to do this?
-    # chown -R sc-download:sc-download ${SC_DATA_DIR}
     set_config
 }
