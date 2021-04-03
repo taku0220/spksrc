@@ -1,12 +1,12 @@
 PYTHON_DIR="/var/packages/python38/target"
 PIP="${SYNOPKG_PKGDEST}/env/bin/pip3"
 PATH="${SYNOPKG_PKGDEST}/bin:${SYNOPKG_PKGDEST}/env/bin:${PYTHON_DIR}/bin:${PATH}"
-HOME="${SYNOPKG_PKGDEST}/var"
+HOME="${SYNOPKG_PKGVAR}"
 VIRTUALENV="${PYTHON_DIR}/bin/virtualenv"
 PYTHON="${SYNOPKG_PKGDEST}/env/bin/python3"
 SC_INSTALL_DIR="${SYNOPKG_PKGDEST}/share/SickChill"
 SC_BINARY="${SC_INSTALL_DIR}/SickChill.py"
-SC_DATA_DIR="${SYNOPKG_PKGDEST}/var/data"
+SC_DATA_DIR="${HOME}/data"
 SC_CFG_FILE="${SC_DATA_DIR}/config.ini"
 
 
