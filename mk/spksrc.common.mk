@@ -69,3 +69,14 @@ ifeq ($(filter $(NCPUS),0 1),)
 COMPILE_MAKE_OPTIONS += -j$(NCPUS)
 endif
 endif
+
+# Terminal colors
+RED=`tput setaf 1`
+GREEN=`tput setaf 2`
+NC=`tput sgr0`
+
+# Version Comparison
+version_le = $(shell if printf '%s\n' "$(1)" "$(2)" | sort -VC ; then echo 1; fi)
+version_ge = $(shell if printf '%s\n' "$(1)" "$(2)" | sort -VCr ; then echo 1; fi)
+version_lt = $(shell if [ "$(1)" != "$(2)" ] && printf "%s\n" "$(1)" "$(2)" | sort -VC ; then echo 1; fi)
+version_gt = $(shell if [ "$(1)" != "$(2)" ] && printf "%s\n" "$(1)" "$(2)" | sort -VCr ; then echo 1; fi)

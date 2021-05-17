@@ -1,3 +1,17 @@
+### Rules to create the spk package
+#   Most of the rules are imported from spksrc.*.mk files
+# 
+# Variables used in this file:
+#  NAME:              The internal name of the package.
+#                     Note that all synocoummunity packages use lowercase names.
+#                     This enables to have concurrent packages with synology.com, that use 
+#                     package names starting with upper case letters. 
+#                     (e.g. Mono => synology.com, mono => synocommunity.com)
+#  SPK_FILE_NAME:     The full spk name with folder, package name, arch, tc- and package version.
+#  SPK_CONTENT:       List of files and folders that are added to package.tgz within the spk file.
+#  DSM_SCRIPT_FILES:  List of script files that are in the scripts folder within the spk file.
+#  
+
 # Common makefiles
 include ../../mk/spksrc.common.mk
 include ../../mk/spksrc.directories.mk
@@ -14,8 +28,22 @@ TC = syno$(ARCH_SUFFIX)
 else
 SPK_ARCH = noarch
 SPK_NAME_ARCH = noarch
+ifeq ($(call version_ge, ${TCVERSION}, 7.0),1)
+SPK_TCVERS = dsm7
+OS_MIN_VER = 7.0-40000
+else ifeq ($(call version_ge, ${TCVERSION}, 6.0),1)
+SPK_TCVERS = dsm6
+OS_MIN_VER = 6.0-7321
+else
+ifeq ($(call version_ge, ${TCVERSION}, 6.0),1)
+SPK_TCVERS = dsm6
+OS_MIN_VER = 6.0-7321
+else
 SPK_TCVERS = all
 OS_MIN_VER = 3.1-1594
+endif
+endif
+ARCH_SUFFIX = -$(SPK_TCVERS)
 FIRMWARE = $(OS_MIN_VER)
 endif
 
@@ -44,26 +72,26 @@ include ../../mk/spksrc.strip.mk
 DSM_SCRIPTS_DIR = $(WORK_DIR)/scripts
 
 # Generated scripts
-DSM_SCRIPTS_  = preinst postinst
-DSM_SCRIPTS_ += preuninst postuninst
-DSM_SCRIPTS_ += preupgrade postupgrade
+DSM_SCRIPT_FILES  = preinst postinst
+DSM_SCRIPT_FILES += preuninst postuninst
+DSM_SCRIPT_FILES += preupgrade postupgrade
 
 # SPK specific scripts
 ifneq ($(strip $(SSS_SCRIPT)),)
-DSM_SCRIPTS_ += start-stop-status
+DSM_SCRIPT_FILES += start-stop-status
 
 $(DSM_SCRIPTS_DIR)/start-stop-status: $(SSS_SCRIPT)
 	@$(dsm_script_copy)
 endif
 
 ifneq ($(strip $(INSTALLER_SCRIPT)),)
-DSM_SCRIPTS_ += installer
+DSM_SCRIPT_FILES += installer
 
 $(DSM_SCRIPTS_DIR)/installer: $(INSTALLER_SCRIPT)
 	@$(dsm_script_copy)
 endif
 
-DSM_SCRIPTS_ += $(notdir $(basename $(ADDITIONAL_SCRIPTS)))
+DSM_SCRIPT_FILES += $(notdir $(basename $(ADDITIONAL_SCRIPTS)))
 
 SPK_CONTENT = package.tgz INFO scripts
 
@@ -110,7 +138,7 @@ ifneq ($(strip $(OS_MIN_VER)),)
 else
 	@echo os_min_ver=\"$(TC_OS_MIN_VER)\" >> $@
 endif
-ifeq ($(shell expr "$(TC_OS_MIN_VER)" \<= 6.1),1)
+ifeq ($(call version_le, ${TC_OS_MIN_VER}, 6.1),1)
 ifneq ($(strip $(FIRMWARE)),)
 	@echo firmware=\"$(FIRMWARE)\" >> $@
 else
@@ -119,6 +147,10 @@ endif
 endif
 ifneq ($(strip $(OS_MAX_VER)),)
 	@echo os_max_ver=\"$(OS_MAX_VER)\" >> $@
+# If require kernel modules then limit
+# 'os_max_ver' to point releases only
+else ifeq ($(strip $(REQUIRE_KERNEL)),1)
+	@echo os_max_ver=\"$(word 1,$(subst ., ,$(TC_VERS))).$(word 2,$(subst ., ,$(TC_VERS)))-$$(expr $(TC_BUILD) + 10)\" >> $@
 endif
 ifneq ($(strip $(BETA)),)
 	@echo beta=\"yes\" >> $@
@@ -127,9 +159,9 @@ endif
 ifneq ($(strip $(HELPURL)),)
 	@echo helpurl=\"$(HELPURL)\" >> $@
 else
-  ifneq ($(strip $(HOMEPAGE)),)
+ifneq ($(strip $(HOMEPAGE)),)
 	@echo helpurl=\"$(HOMEPAGE)\" >> $@
-  endif
+endif
 endif
 ifneq ($(strip $(SUPPORTURL)),)
 	@echo support_url=\"$(SUPPORTURL)\" >> $@
@@ -143,23 +175,32 @@ endif
 ifneq ($(strip $(INSTUNINST_RESTART_SERVICES)),)
 	@echo instuninst_restart_services=\"$(INSTUNINST_RESTART_SERVICES)\" >> $@
 endif
-ifneq ($(strip $(RELOAD_UI)),)
+ifeq ($(RELOAD_UI),yes)
 	@echo reloadui=\"$(RELOAD_UI)\" >> $@
 endif
+
+# for non startable (i.e. non service, cli tools only)
+# as default is 'yes' we only add this value for 'no'
 ifeq ($(STARTABLE),no)
-ifeq ($(shell expr "$(TC_OS_MIN_VER)" \<= 6.1),1)
+ifeq ($(call version_ge, ${TCVERSION}, 6.1),1)
+	@echo ctl_stop=\"$(STARTABLE)\" >> $@
+else
 	@echo startable=\"$(STARTABLE)\" >> $@
 endif
-	@echo ctl_stop=\"$(STARTABLE)\" >> $@
 endif
+
 	@echo displayname=\"$(DISPLAY_NAME)\" >> $@
 ifneq ($(strip $(DSM_UI_DIR)),)
 	@echo dsmuidir=\"$(DSM_UI_DIR)\" >> $@
 endif
 ifneq ($(strip $(DSM_APP_NAME)),)
 	@echo dsmappname=\"$(DSM_APP_NAME)\" >> $@
+	@echo dsmapppage=\"$(DSM_APP_NAME)\" >> $@
+	@echo dsmapplaunchname=\"$(DSM_APP_NAME)\" >> $@
 else
 	@echo dsmappname=\"com.synocommunity.$(SPK_NAME)\" >> $@
+	@echo dsmapppage=\"com.synocommunity.$(SPK_NAME)\" >> $@
+	@echo dsmapplaunchname=\"com.synocommunity.$(SPK_NAME)\" >> $@
 endif
 ifneq ($(strip $(ADMIN_PROTOCOL)),)
 	@echo adminprotocol=\"$(ADMIN_PROTOCOL)\" >> $@
@@ -222,7 +263,7 @@ $(WORK_DIR)/package.tgz: icon service
 	@[ -f $@ ] && rm $@ || true
 	(cd $(STAGING_DIR) && tar cpzf $@ --owner=root --group=root *)
 
-DSM_SCRIPTS = $(addprefix $(DSM_SCRIPTS_DIR)/,$(DSM_SCRIPTS_))
+DSM_SCRIPTS = $(addprefix $(DSM_SCRIPTS_DIR)/,$(DSM_SCRIPT_FILES))
 
 define dsm_script_redirect
 $(create_target_dir)
@@ -262,10 +303,14 @@ icons:
 ifneq ($(strip $(SPK_ICON)),)
 	$(create_target_dir)
 	@$(MSG) "Creating PACKAGE_ICON.PNG for $(SPK_NAME)"
-	(convert $(SPK_ICON) -thumbnail 72x72 -strip - > $(WORK_DIR)/PACKAGE_ICON.PNG)
+ifneq ($(call version_ge, ${TCVERSION}, 7.0),1)
+	(convert $(SPK_ICON) -resize 72x72 -strip -sharpen 0x2 - > $(WORK_DIR)/PACKAGE_ICON.PNG)
+else
+	(convert $(SPK_ICON) -resize 64x64 -strip -sharpen 0x2 - > $(WORK_DIR)/PACKAGE_ICON.PNG)
+endif
 	@$(MSG) "Creating PACKAGE_ICON_256.PNG for $(SPK_NAME)"
-	(convert $(SPK_ICON) -thumbnail 256x256 -strip - > $(WORK_DIR)/PACKAGE_ICON_256.PNG)
-	$(eval SPK_CONTENT +=  PACKAGE_ICON.PNG PACKAGE_ICON_256.PNG)
+	(convert $(SPK_ICON) -resize 256x256 -strip -sharpen 0x2 - > $(WORK_DIR)/PACKAGE_ICON_256.PNG)
+	$(eval SPK_CONTENT += PACKAGE_ICON.PNG PACKAGE_ICON_256.PNG)
 endif
 
 .PHONY: info-checksum
@@ -275,13 +320,26 @@ info-checksum:
 
 .PHONY: wizards
 wizards:
+ifeq ($(call version_ge, ${TCVERSION}, 7.0),1)
+	@$(MSG) "Create default DSM7 uninstall wizard"
+	@mkdir -p $(DSM_WIZARDS_DIR)
+	@find $(SPKSRC_MK)wizard -maxdepth 1 -type f -and \( -name "uninstall_uifile" -or -name "uninstall_uifile_???" \) -print -exec cp -f {} $(DSM_WIZARDS_DIR) \;
+endif
 ifneq ($(strip $(WIZARDS_DIR)),)
-	@$(MSG) "Preparing DSM Wizards"
+	@$(MSG) "Create DSM Wizards"
 	@mkdir -p $(DSM_WIZARDS_DIR)
 	@find $${SPKSRC_WIZARDS_DIR} -maxdepth 1 -type f -and \( -name "install_uifile" -or -name "install_uifile_???" -or -name "install_uifile.sh" -or -name "install_uifile_???.sh" -or -name "upgrade_uifile" -or -name "upgrade_uifile_???" -or -name "upgrade_uifile.sh" -or -name "upgrade_uifile_???.sh" -or -name "uninstall_uifile" -or -name "uninstall_uifile_???" -or -name "uninstall_uifile.sh" -or -name "uninstall_uifile_???.sh" \) -print -exec cp -f {} $(DSM_WIZARDS_DIR) \;
+endif
+ifneq ($(strip $(WIZARDS_DIR)),)
 	@find $(DSM_WIZARDS_DIR) -maxdepth 1 -type f -not -name "*.sh" -print -exec chmod 0644 {} \;
 	@find $(DSM_WIZARDS_DIR) -maxdepth 1 -type f -name "*.sh" -print -exec chmod 0755 {} \;
 	$(eval SPK_CONTENT += WIZARD_UIFILES)
+else
+ifeq ($(call version_ge, ${TCVERSION}, 7.0),1)
+	@find $(DSM_WIZARDS_DIR) -maxdepth 1 -type f -not -name "*.sh" -print -exec chmod 0644 {} \;
+	@find $(DSM_WIZARDS_DIR) -maxdepth 1 -type f -name "*.sh" -print -exec chmod 0755 {} \;
+	$(eval SPK_CONTENT += WIZARD_UIFILES)
+endif
 endif
 
 .PHONY: conf

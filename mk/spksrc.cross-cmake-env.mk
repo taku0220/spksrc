@@ -45,7 +45,7 @@ ifeq ($(findstring $(ARCH),$(ARMv5_ARCHS)),$(ARCH))
   CMAKE_ARGS += -DCROSS_COMPILE_ARM=ON
   CMAKE_ARGS += -DCMAKE_SYSTEM_PROCESSOR=armv5
 endif
-ifeq ($(findstring $(ARCH),$(ARMv7_ARCHS)),$(ARCH))
+ifeq ($(findstring $(ARCH),$(ARMv7_ARCHS) $(ARMv7L_ARCHS)),$(ARCH))
   CMAKE_ARGS += -DCMAKE_CXX_FLAGS=-fPIC -DCROSS_COMPILE_ARM=ON
   CMAKE_ARGS += -DCMAKE_SYSTEM_PROCESSOR=armv7
 endif
@@ -55,7 +55,7 @@ ifeq ($(findstring $(ARCH),$(ARMv8_ARCHS)),$(ARCH))
 endif
 ifeq ($(findstring $(ARCH), $(PPC_ARCHS)),$(ARCH))
   CMAKE_ARGS += -DCMAKE_C_FLAGS=-mcpu=8548 -mhard-float -mfloat-gprs=double
-  CMAKE_ARGS += -DCMAKE_SYSTEM_PROCESSOR=ppc64
+  CMAKE_ARGS += -DCMAKE_SYSTEM_PROCESSOR=ppc
 endif
 ifeq ($(findstring $(ARCH),$(i686_ARCHS)),$(ARCH))
   CMAKE_ARGS += -DCMAKE_SYSTEM_PROCESSOR=x86 -DARCH=32

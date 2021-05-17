@@ -27,6 +27,7 @@ HOMEPAGE = https://borgbackup.readthedocs.io
 LICENSE  = BSD-3-Clause
 
 SERVICE_SETUP = src/service-setup.sh
-SPK_LINKS = /usr/local/bin/borg:env/bin/borg /usr/local/bin/borgmatic:env/bin/borgmatic
+
+SPK_USR_LOCAL_LINKS = bin:env/bin/borg bin:env/bin/borgmatic
 
 include ../../mk/spksrc.spk.mk

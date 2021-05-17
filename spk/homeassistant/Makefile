@@ -1,35 +1,30 @@
 SPK_NAME = homeassistant
-SPK_VERS = 0.118.5
-SPK_REV = 11
+SPK_VERS = 2021.1.5
+SPK_REV = 13
 SPK_ICON = src/${SPK_NAME}.png
 
-SPK_DEPENDS = "python3>=3.7.7"
+SPK_DEPENDS = "python38"
 
-BUILD_DEPENDS = cross/python3 cross/setuptools cross/pip cross/wheel
+BUILD_DEPENDS = cross/python38 cross/setuptools cross/pip cross/wheel
 BUILD_DEPENDS += cross/poetry
-OPTIONAL_DEPENDS += cross/numpy
 
 DEPENDS += cross/libyaml cross/bcrypt cross/cryptography
 DEPENDS += cross/pillow
+# for iqvia
+DEPENDS += cross/numpy
 # for python-libnmap
 DEPENDS += cross/nmap
 # for mobile_app
 DEPENDS += cross/PyNaCl
-
-include ../../mk/spksrc.archs.mk
-
-# unable to compile numpy 1.19.1 for x64 archs
-ifneq ($(findstring $(ARCH),$(x64_ARCHS)),$(ARCH))
-# for iqvia
-DEPENDS += cross/numpy
-endif
+# for tradfri
+DEPENDS += cross/dtlssocket
 
 WHEELS = src/requirements.txt
 
 MAINTAINER = ymartin59
-DESCRIPTION = Home Assistant is an open-source home automation platform running on Python 3. Track and control all devices at home and automate control.
+DESCRIPTION = "Home Assistant is an open-source home automation platform running on Python 3. Track and control all devices at home and automate control."
 DISPLAY_NAME = Home Assistant Core
-CHANGELOG = "Fix integrations: Xiaomi Gateway (Aqara), Xiaomi Miio, Sony PlayStation 4, IKEA TRÅDFRI, Apple iCloud, Minut Point"
+CHANGELOG = "Update homeassistant to 2021.1.5 and Python 3.8."
 RELOAD_UI = yes
 STARTABLE = yes
 
