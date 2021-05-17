@@ -1,5 +1,5 @@
 SPK_NAME = forked-daapd
-SPK_VERS = 27.2
+SPK_VERS = 27.4
 SPK_REV = 1
 SPK_ICON = src/forked-daapd.png
 
