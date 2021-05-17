@@ -1,0 +1,29 @@
+--- src/mdns_avahi.c-orig	2021-05-08 01:52:40.961662117 +0000
++++ src/mdns_avahi.c	2021-05-08 01:55:24.443665143 +0000
+@@ -411,6 +411,13 @@
+ }
+ 
+ static int
++is_v6Address(const char *address_log)
++{
++  /* Simple ipv6 address check */
++  return (strstr(address_log, ":") != NULL);
++}
++
++static int
+ avahi_address_make(AvahiAddress *addr, AvahiProtocol proto, const void *rdata, size_t size)
+ {
+   memset(addr, 0, sizeof(AvahiAddress));
+@@ -589,6 +596,12 @@
+       return -1;
+     }
+ 
++  if (proto == AVAHI_PROTO_INET && is_v6Address(address_log))
++    {
++      DPRINTF(E_WARN, L_MDNS, "Ignoring announcement from %s, address %s, This address was incorrectly reported as ipv4 \n", hostname, address_log);
++      return -1;
++    }
++
+   if (!(flags & MDNS_CONNECTION_TEST))
+     return 0; // All done
+ 
