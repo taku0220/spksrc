@@ -13,4 +13,11 @@ LICENSE  = 3-clause BSD
 
 GNU_CONFIGURE = 1
 
+CONFIGURE_ARGS = --disable-abiflags
+
 include ../../mk/spksrc.cross-cc.mk
+
+# Enable 64-bit support in libantlr3c for 64-bit architectures (amd64 and arm64)
+ifeq ($(findstring $(ARCH),$(x64_ARCHS) $(ARMv8_ARCHS)),$(ARCH))
+  CONFIGURE_ARGS += --enable-64bit
+endif

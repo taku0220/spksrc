@@ -13,4 +13,6 @@ LICENSE = Academic Free License v2.1 or GPLv2
 
 GNU_CONFIGURE = 1
 
+CONFIGURE_ARGS = --localstatedir=/var
+
 include ../../mk/spksrc.cross-cc.mk

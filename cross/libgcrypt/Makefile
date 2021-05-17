@@ -16,4 +16,8 @@ GNU_CONFIGURE = 1
 CONFIGURE_ARGS = --with-gpg-error-prefix=$(STAGING_INSTALL_PREFIX)
 CONFIGURE_ARGS += ac_cv_sys_symbol_underscore=no
 
+ifeq ($(findstring forked-daapd,$(INSTALL_PREFIX)),forked-daapd)
+  CONFIGURE_ARGS += --disable-asm
+endif
+
 include ../../mk/spksrc.cross-cc.mk
