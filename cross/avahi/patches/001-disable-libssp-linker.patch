@@ -1,0 +1,11 @@
+--- configure.ac-orig	2020-02-18 07:01:15.816990957 +0000
++++ configure.ac	2021-05-19 11:00:15.292465620 +0000
+@@ -90,7 +90,7 @@
+     # break here)
+ 
+     # Get -lssp if it exists
+-    GCC_STACK_PROTECT_LIB
++    # GCC_STACK_PROTECT_LIB
+ 
+     AC_MSG_CHECKING([whether stack-smashing protection is available])
+     ssp_old_cflags="$CFLAGS"

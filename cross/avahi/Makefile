@@ -18,9 +18,14 @@ CONFIGURE_ARGS += --disable-gtk --disable-gtk3
 CONFIGURE_ARGS += --disable-gdbm
 CONFIGURE_ARGS += --disable-python
 CONFIGURE_ARGS += --disable-mono --disable-monodoc
-CONFIGURE_ARGS += --disable-stack-protector
 
 NATIVE_GLIB_GOBJECT_DIR = $(realpath $(WORK_DIR)/../../../native/glib/work-native/install/usr/local/bin)
 ENV = PATH=$$PATH:$(NATIVE_GLIB_GOBJECT_DIR)
 
+PRE_CONFIGURE_TARGET = avahi_pre_configure
+
 include ../../mk/spksrc.cross-cc.mk
+
+.PHONY: avahi_pre_configure
+avahi_pre_configure:
+	$(RUN) autoreconf -i -v
