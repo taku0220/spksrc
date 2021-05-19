@@ -31,4 +31,6 @@ include ../../mk/spksrc.cross-cc.mk
 
 .PHONY: forked-daapd_pre_configure
 forked-daapd_pre_configure:
+	$(RUN) apt-get update
+	$(RUN) apt-get install -y antlr3 libgcrypt20-dev libgpg-error-dev autopoint
 	$(RUN) autoreconf -i -v
