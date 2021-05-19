@@ -28,4 +28,6 @@ include ../../mk/spksrc.cross-cc.mk
 
 .PHONY: avahi_pre_configure
 avahi_pre_configure:
+	$(RUN) apt-get update
+	$(RUN) apt-get install -y autopoint
 	$(RUN) autoreconf -i -v
